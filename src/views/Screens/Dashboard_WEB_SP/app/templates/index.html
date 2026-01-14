@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Atividades</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Nosso CSS (carregado via Flask) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div id="loader-overlay" class="d-none"><div class="loader"></div></div>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header"><h3>Controles</h3></div>
+            <div class="sidebar-controls">
+                <div class="control-group">
+                    <label for="file-input">Arquivo</label>
+                    <div class="file-upload-wrapper">
+                        <button class="btn btn-primary" type="button"><i class="bi bi-upload me-2"></i> Carregar Excel</button>
+                        <input type="file" id="file-input" accept=".xlsx, .xls, .csv">
+                    </div>
+                    <span id="file-name">Nenhum arquivo.</span>
+                </div>
+                <div class="control-group">
+                    <button id="export-button" class="btn btn-success w-100" disabled><i class="bi bi-download me-2"></i> Exportar Dados</button>
+                </div>
+
+                <h5 class="mt-4 pt-2 border-top border-secondary">Filtros</h5>
+                <div class="control-group">
+                    <label for="sheet-selector">Visão por Aba</label>
+                    <select id="sheet-selector" class="form-select" disabled><option>Carregue um arquivo</option></select>
+                </div>
+                <div class="control-group">
+                    <label for="responsavel-filter">Responsável</label>
+                    <select id="responsavel-filter" class="form-select" disabled><option>Todos</option></select>
+                </div>
+                <div class="control-group">
+                    <label for="status-geral-filter">Status Geral</label>
+                    <select id="status-geral-filter" class="form-select" disabled>
+                        <option value="Todos">Todos</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Concluído">Concluído</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="ressalva-filter">Ressalvas</label>
+                    <select id="ressalva-filter" class="form-select" disabled>
+                        <option value="Todas">Todas</option>
+                        <option value="Com Ressalvas">Com Ressalvas</option>
+                        <option value="Sem Ressalvas">Sem Ressalvas</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 p-2 rounded">
+                <div class="container-fluid">
+                    <button type="button" id="sidebar-toggle" class="btn btn-primary"><i class="bi bi-list"></i></button>
+                    <h5 class="ms-3 my-0 fw-bold text-dark navbar-title">Dashboard de Atividades SP - ONS - PLC</h5>
+                    <ul class="navbar-nav ms-auto d-flex flex-row">
+                        <!-- Links atualizados para usar as rotas do Flask -->
+                        <li class="nav-item"><a class="nav-link px-3" href="{{ url_for('main.index') }}" data-view="main-dashboard-view">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="{{ url_for('main.kanban') }}" data-view="kanban-view">Kanban Tarefas</a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="{{ url_for('main.eisenhower') }}" data-view="eisenhower-view">Matriz Eisenhower</a></li>
+                        <li class="nav-item"><a class="nav-link px-3" href="{{ url_for('main.pros_contras') }}" data-view="swot-view">Prós e Contras</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div id="dashboard-content">
+                <!-- VISTA: DASHBOARD PRINCIPAL -->
+                <div id="main-dashboard-view" class="view-container">
+                     <h5 class="card-title fw-bold">Visão Geral das Atividades</h5>
+                     <p class="tool-description">Visualize o status geral das atividades carregadas do arquivo Excel/CSV. Utilize os filtros laterais para refinar a visualização e os gráficos para identificar tendências e gargalos.</p>
+                    <div id="dashboard-view-content" class="d-none"> <!-- Conteúdo escondido até carregar -->
+                        <div class="row g-4 mb-4" id="stats-cards"></div>
+                        <div class="row g-4 mb-4">
+                            <!-- Gráficos -->
+                            <div class="col-lg-4"><div class="card h-100"><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold">Status Geral</h5><div class="flex-grow-1" style="position: relative; min-height: 250px;"><canvas id="statusChart"></canvas></div></div></div></div>
+                            <div class="col-lg-4"><div class="card h-100"><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold">Atividades c/ Ressalva</h5><div class="flex-grow-1" style="position: relative; min-height: 250px;"><canvas id="ressalvasChart"></canvas></div></div></div></div>
+                            <div class="col-lg-4"><div class="card h-100"><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold">Atividades por Responsável</h5><div class="flex-grow-1" style="position: relative; min-height: 250px;"><canvas id="responsavelChart"></canvas></div></div></div></div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-12"><div class="card h-100"><div class="card-body"><h5 class="card-title fw-bold">Detalhes da Atividade</h5><div id="data-table-container" class="table-responsive"></div></div></div></div>
+                        </div>
+                    </div>
+                     <div id="initial-message" class="text-center p-5 bg-light rounded-3 mt-4"> <!-- Mensagem inicial exibida por padrão -->
+                        <i class="bi bi-file-earmark-spreadsheet" style="font-size: 4rem; color: #6c757d;"></i>
+                        <h3 class="mt-3">Aguardando arquivo...</h3>
+                        <p class="text-muted">Use o menu lateral para carregar um arquivo Excel ou CSV para visualizar o Dashboard.</p>
+                    </div>
+                </div>
+
+                <!-- VISTA: KANBAN TAREFAS (Conectado ao Excel) -->
+                <div id="kanban-view" class="view-container d-none">
+                    <div class="card">
+                        <div class="card-body">
+                             <h5 class="card-title fw-bold">Kanban Tarefas (Pendentes)</h5>
+                             <p class="tool-description">Visualize as tarefas **pendentes** carregadas do Excel/CSV. Arraste os cartões entre as colunas para atualizar o status da tarefa (a mudança é salva no navegador e refletida no Dashboard/Exportação).</p>
+                            <div id="kanban-excel-container"></div> <!-- Container específico para o Kanban do Excel -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: MATRIZ EISENHOWER (Manual) -->
+                <div id="eisenhower-view" class="view-container d-none">
+                    <div class="card">
+                        <div class="card-body">
+                             <h5 class="card-title fw-bold">Matriz de Eisenhower (Manual)</h5>
+                             <p class="tool-description">Priorize tarefas **manuais** com base nos eixos de Importante/Não Importante e Urgente/Não Urgente. Adicione, edite, remova e **arraste** itens entre os quadrantes.</p>
+                            <div id="eisenhower-matrix-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: PRÓS E CONTRAS (Manual) -->
+                <div id="swot-view" class="view-container d-none">
+                     <div class="card">
+                        <div class="card-body">
+                             <h5 class="card-title fw-bold">Análise de Prós e Contras (Manual)</h5>
+                             <p class="tool-description">Liste pontos positivos e negativos **manualmente**. Adicione, edite, remova e **arraste** itens entre as colunas 'Prós' e 'Contras'.</p>
+                            <div id="pros-cons-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Calendário -->
+    <div class="modal fade" id="calendarModal" tabindex="-1" aria-labelledby="calendarModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="calendarModalLabel">Timeline da Atividade</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div id="calendar-container"></div>
+              <hr>
+              <div id="modal-activity-details" class="mt-3 p-3 bg-light rounded" style="max-height: 200px; overflow-y: auto;">Selecione um dia no calendário para ver os detalhes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bibliotecas JS (carregadas antes do nosso script) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Nosso Script (carregado via Flask) -->
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+

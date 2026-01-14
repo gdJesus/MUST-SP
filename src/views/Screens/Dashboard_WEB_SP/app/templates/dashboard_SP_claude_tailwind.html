@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ONS - Atividades SP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-card .icon {
+            font-size: 2em;
+            opacity: 0.7;
+        }
+
+        .charts-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .table-section {
+            padding: 30px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-pendente {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-concluido {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .kanban-board {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .kanban-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .kanban-column {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .kanban-column h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .kanban-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: move;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kanban-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .kanban-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .kanban-card p {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .filters-bar {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        select, input[type="file"] {
+            padding: 10px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-navigation {
+            background: white;
+            padding: 0 30px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .tab-btn {
+            padding: 15px 30px;
+            background: transparent;
+            color: #7f8c8d;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kanban-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 Dashboard de Atividades SP</h1>
+            <p>Operador Nacional do Sistema Elétrico - ONS | PLC</p>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>📂 Arquivo Excel</label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+            </div>
+            <div class="filter-group">
+                <label>📋 Visão por Aba</label>
+                <select id="sheetFilter">
+                    <option value="Consolidado">Consolidado</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>👤 Responsável</label>
+                <select id="responsavelFilter">
+                    <option value="Todos">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>📊 Status</label>
+                <select id="statusFilter">
+                    <option value="Todos">Todos</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Concluído">Concluído</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>⚠️ Ressalvas</label>
+                <select id="ressalvaFilter">
+                    <option value="Todas">Todas</option>
+                    <option value="Com Ressalvas">Com Ressalvas</option>
+                    <option value="Sem Ressalvas">Sem Ressalvas</option>
+                </select>
+            </div>
+            <button onclick="exportData()">💾 Exportar</button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('kanban')">📋 Kanban</button>
+            <button class="tab-btn" onclick="switchTab('table')">📄 Detalhes</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3>Total de Atividades</h3>
+                    <div class="value" id="totalAtividades">0</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="icon">⏳</div>
+                    <h3>Pendentes</h3>
+                    <div class="value" id="totalPendentes">0</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="icon">✅</div>
+                    <h3>Concluídos</h3>
+                    <div class="value" id="totalConcluidos">0</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="icon">👥</div>
+                    <h3>Responsáveis</h3>
+                    <div class="value" id="totalResponsaveis">0</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <h2 style="color: #2c3e50; margin-bottom: 10px;">📈 Análises Gráficas</h2>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Status das Atividades</h3>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Atividades por Responsável</h3>
+                        <canvas id="responsavelChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Distribuição de Ressalvas</h3>
+                        <canvas id="ressalvasChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kanban Tab -->
+        <div id="kanban" class="tab-content">
+            <div class="kanban-board">
+                <h2 style="color: #2c3e50; margin-bottom: 10px;">📋 Quadro Kanban</h2>
+                <div class="kanban-columns">
+                    <div class="kanban-column">
+                        <h3>⏳ Pendente</h3>
+                        <div id="kanbanPendente"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <h3>🔄 Em Andamento</h3>
+                        <div id="kanbanAndamento"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <h3>✅ Concluído</h3>
+                        <div id="kanbanConcluido"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Tab -->
+        <div id="table" class="tab-content">
+            <div class="table-section">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">📄 Detalhes das Atividades</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Origem</th>
+                                <th>Status</th>
+                                <th>Atividade</th>
+                                <th>Responsável</th>
+                                <th>Previsão</th>
+                                <th>Observação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: #7f8c8d;">Carregando dados...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Funções de navegação entre tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Placeholder para funções de dados
+        function exportData() {
+            alert('Função de exportação será implementada via API');
+        }
+
+        // Dados de exemplo para demonstração
+        const sampleData = {
+            total: 10,
+            pendentes: 7,
+            concluidos: 3,
+            responsaveis: 3
+        };
+
+        // Atualizar cards de estatísticas
+        document.getElementById('totalAtividades').textContent = sampleData.total;
+        document.getElementById('totalPendentes').textContent = sampleData.pendentes;
+        document.getElementById('totalConcluidos').textContent = sampleData.concluidos;
+        document.getElementById('totalResponsaveis').textContent = sampleData.responsaveis;
+
+        // Gráficos de exemplo
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendente', 'Concluído'],
+                datasets: [{
+                    data: [7, 3],
+                    backgroundColor: ['#f5576c', '#38ef7d']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

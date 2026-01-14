@@ -1,0 +1,552 @@
+import React, { useState, useCallback, useMemo } from 'react';
+import { Search, Map, Calendar, Apple, Zap, Twitter, Youtube, Music, Linkedin, Instagram, Play, User, Mail, Phone, Briefcase, PlusCircle, X, CheckCircle, XCircle } from 'lucide-react';
+
+// --- CONFIGURATION / MODEL (M) ---
+const mainGreen = '#4E9A68';
+const darkGreen = '#31684E';
+const patternBackground = 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05) 10px, transparent 10px, transparent 20px)';
+
+const navData = {
+    topBarLinks: [
+        { label: 'PROTOCOLO ONS', href: '#' },
+        { label: 'SINTEGRE', href: '#' },
+        { label: 'TRABALHE NO ONS', href: '#' },
+        { label: 'FALE CONOSCO', href: '#' },
+        { label: 'FORNECEDORES', href: '#' },
+    ],
+    mainNavItems: ["SOBRE O ONS", "SOBRE O SNI", "ENERGIA NO FUTURO", "ENERGIA AMANHÃ", "ENERGIA AGORA", "RESULTADOS DA OPERAÇÃO", "CONHECIMENTO", "IMPRENSA"],
+    subNavItems: ["O QUE SÃO", "VIGENTES", "BUSCA AVANÇADA", "HISTÓRICO", "MPO", "SISTEMAS", "REFERÊNCIAS"],
+    socialIcons: [Twitter, Instagram, Music, Youtube, Play, Apple],
+    footerLinks: ["Endereços", "Mapa do Site", "Privacidade e Proteção de Dados", "Membro do CIGRE"],
+};
+
+// --- CONTROLLER / LOGIC (C) ---
+const useNavigationController = () => {
+    const [activeSubTab, setActiveSubTab] = useState("MPO");
+    // State for simple routing between main site and registration form
+    const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+    // State for modal feedback (the "friendly modals")
+    const [modalState, setModalState] = useState({ visible: false, type: 'success', message: '' });
+
+    // Existing handler
+    const handleSubTabClick = useCallback((tab) => {
+        setActiveSubTab(tab);
+        // Ensure registration view is closed when clicking main nav items
+        setIsRegistrationOpen(false);
+    }, []);
+
+    // Handlers for registration view
+    const openRegistration = useCallback(() => {
+        setIsRegistrationOpen(true);
+    }, []);
+
+    const closeRegistration = useCallback(() => {
+        setIsRegistrationOpen(false);
+    }, []);
+
+    // Handlers for modal
+    const showFriendlyModal = useCallback((type, message) => {
+        setModalState({ visible: true, type, message });
+    }, []);
+
+    const closeModal = useCallback(() => {
+        setModalState(prev => ({ ...prev, visible: false }));
+    }, []);
+
+    // Placeholder for form submission logic
+    const handleSubmitRegistration = useCallback((formData) => {
+        // Simple simulation of form processing and feedback
+        
+        // Show loading or processing feedback (optional)
+        showFriendlyModal('loading', 'Processando seu cadastro...'); 
+
+        setTimeout(() => {
+            // Check if email looks valid (simple check for simulation)
+            if (formData.email.includes('@') && formData.department && formData.name) {
+                // Successful registration
+                showFriendlyModal('success', `Sucesso! O funcionário ${formData.name} foi cadastrado no ${formData.department}.`);
+                // Optionally close the form after successful registration
+                // closeRegistration();
+            } else {
+                // Failure due to simulation logic
+                showFriendlyModal('error', 'Falha no cadastro. Por favor, revise todos os campos e tente novamente.');
+            }
+        }, 1500); // Simulate API call delay
+
+    }, [showFriendlyModal]);
+
+    // Placeholder data for content based on active tab
+    const content = useMemo(() => {
+        return `Conteúdo da aba: ${activeSubTab}. O Operador Nacional do Sistema Elétrico (ONS) gerencia e supervisiona a operação do sistema elétrico brasileiro.`;
+    }, [activeSubTab]);
+
+    return { 
+        activeSubTab, 
+        handleSubTabClick, 
+        content, 
+        navData, 
+        isRegistrationOpen, 
+        openRegistration, 
+        closeRegistration,
+        handleSubmitRegistration,
+        modalState, 
+        closeModal 
+    };
+};
+
+// --- NEW VIEW COMPONENTS (V) ---
+
+// Generic Modal Component (The "Simpático" Modal)
+const ModalComponent = ({ visible, type, message, onClose }) => {
+    if (!visible) return null;
+
+    const isSuccess = type === 'success';
+    const isError = type === 'error';
+    
+    // Determine styles based on type
+    let colorClass = 'bg-white border-gray-300 text-gray-800';
+    let Icon = X;
+    let title = 'Aguarde...';
+    let buttonColor = 'bg-gray-600 hover:bg-gray-700';
+    
+    if (isSuccess) {
+        colorClass = 'bg-green-100 border-green-400 text-green-700';
+        Icon = CheckCircle;
+        title = 'Sucesso!';
+        buttonColor = 'bg-green-600 hover:bg-green-700';
+    } else if (isError) {
+        colorClass = 'bg-red-100 border-red-400 text-red-700';
+        Icon = XCircle;
+        title = 'Atenção!';
+        buttonColor = 'bg-red-600 hover:bg-red-700';
+    } else { // Loading state
+        Icon = Zap;
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+            <div className={`w-full max-w-sm rounded-xl shadow-2xl p-6 ${colorClass} border-l-4 transform transition-all duration-300 scale-100`}>
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center">
+                        {/* Loading spinner for non-success/error state */}
+                        {!(isSuccess || isError) && <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500 mr-3"></div>}
+                        
+                        {(isSuccess || isError) && <Icon size={24} className={isSuccess ? 'text-green-500 mr-3' : 'text-red-500 mr-3'} />}
+                        
+                        <h3 className="text-xl font-bold">{title}</h3>
+                    </div>
+                    {(isSuccess || isError) && ( // Only show close button for final states
+                        <button onClick={onClose} className="p-1 rounded-full hover:bg-white/50 transition">
+                            <X size={20} />
+                        </button>
+                    )}
+                </div>
+                <p className="mt-3 text-sm font-medium">{message}</p>
+                
+                {(isSuccess || isError) && ( // Only show button for final states
+                    <button
+                        onClick={onClose}
+                        className={`mt-4 w-full px-4 py-2 rounded-lg font-semibold transition shadow-md text-white ${buttonColor}`}
+                    >
+                        Entendido
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// New Employee Registration Form
+const NewEmployeeFormView = ({ onSubmit, onCancel }) => {
+    const [formData, setFormData] = useState({ name: '', position: '', email: '', phone: '', department: '' });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // The controller (handleSubmitRegistration) will handle validation feedback via the modal
+        onSubmit(formData);
+    };
+
+    // Responsive input styling
+    const inputClasses = "w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition duration-150 shadow-sm";
+
+    return (
+        <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white shadow-2xl rounded-xl my-8">
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+                <h1 className="text-xl md:text-3xl font-extrabold text-gray-800 flex items-center">
+                    <PlusCircle size={32} className="mr-3 text-green-600 min-w-[32px]" />
+                    Cadastro de Funcionário Elite
+                </h1>
+                <button 
+                    onClick={onCancel} 
+                    aria-label="Voltar para a página principal"
+                    className="text-gray-500 hover:text-red-500 transition duration-150 p-2 rounded-full hover:bg-gray-100"
+                >
+                    <X size={24} />
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Full Name */}
+                <div className="md:col-span-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                    <div className="relative flex items-center">
+                        <User size={20} className="text-green-500 absolute ml-3" />
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Ex: João da Silva"
+                            required
+                            className={inputClasses + " pl-10"}
+                        />
+                    </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">E-mail Corporativo</label>
+                    <div className="relative flex items-center">
+                        <Mail size={20} className="text-green-500 absolute ml-3" />
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="joao.silva@empresa.com"
+                            required
+                            className={inputClasses + " pl-10"}
+                        />
+                    </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Telefone (Whatsapp)</label>
+                    <div className="relative flex items-center">
+                        <Phone size={20} className="text-green-500 absolute ml-3" />
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="(XX) 9XXXX-XXXX"
+                            required
+                            className={inputClasses + " pl-10"}
+                        />
+                    </div>
+                </div>
+
+                {/* Position */}
+                <div>
+                    <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">Cargo/Função</label>
+                    <div className="relative flex items-center">
+                        <Briefcase size={20} className="text-green-500 absolute ml-3" />
+                        <input
+                            type="text"
+                            id="position"
+                            name="position"
+                            value={formData.position}
+                            onChange={handleChange}
+                            placeholder="Gerente de Projetos"
+                            required
+                            className={inputClasses + " pl-10"}
+                        />
+                    </div>
+                </div>
+
+                {/* Department (Simulating a select/dropdown) */}
+                <div>
+                    <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">Departamento Elite</label>
+                    <select
+                        id="department"
+                        name="department"
+                        value={formData.department}
+                        onChange={handleChange}
+                        required
+                        className={inputClasses + " appearance-none"}
+                    >
+                        <option value="" disabled>Selecione o Departamento</option>
+                        <option value="Inovacao">Inovação e Estratégia</option>
+                        <option value="Operacoes">Operações Críticas</option>
+                        <option value="Executivo">Setor Executivo</option>
+                        <option value="P&D">Pesquisa e Desenvolvimento (P&D)</option>
+                    </select>
+                </div>
+
+
+                {/* Submit Button */}
+                <div className="md:col-span-2 mt-4 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition duration-150 font-semibold"
+                    >
+                        Voltar
+                    </button>
+                    <button
+                        type="submit"
+                        className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 font-bold shadow-lg shadow-green-500/50"
+                    >
+                        Cadastrar Novo Funcionário
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
+
+// --- VIEW COMPONENTS (V) ---
+
+// 1. Top Information Bar (unchanged)
+const TopBarView = ({ topBarLinks, socialIcons }) => (
+    <div style={{ backgroundColor: darkGreen }} className="text-white text-xs py-2 px-4 border-b border-white/10 hidden lg:block">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+            {/* Left Section - Quick Links */}
+            <div className="flex space-x-4">
+                {topBarLinks.map(link => (
+                    <a key={link.label} href={link.href} className="hover:text-gray-300 transition duration-150">{link.label}</a>
+                ))}
+            </div>
+
+            {/* Right Section - Social Icons and Entry */}
+            <div className="flex items-center space-x-4">
+                <Search size={16} className="cursor-pointer hover:text-yellow-400 transition duration-150" />
+                <div className="flex space-x-3">
+                    {socialIcons.map((Icon, index) => (
+                        <Icon key={index} size={16} className="cursor-pointer hover:text-yellow-400 transition duration-150" />
+                    ))}
+                </div>
+                <div className="ml-4 border-l border-white/20 pl-4 flex items-center">
+                    <User size={16} className="mr-2" />
+                    <button className="font-bold tracking-wide hover:underline">
+                        Entrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// 2. Main Navigation Header (Updated to include registration button)
+const MainHeaderView = ({ mainNavItems, onOpenRegistration }) => (
+    <header style={{ backgroundColor: mainGreen }} className="relative shadow-md">
+        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: patternBackground, backgroundSize: '20px 20px' }} />
+        <div className="relative max-w-7xl mx-auto px-4 py-4 md:py-6 flex justify-between items-center z-10">
+            {/* Logo and ONS Text */}
+            <div className="flex items-center space-x-4">
+                {/* Replicated ONS Logo and Great Place to Work Badge structure */}
+                <div className="flex flex-col items-center">
+                    {/* Placeholder for ONS Logo */}
+                    <div className="bg-white p-1 rounded-sm shadow-md">
+                        <img
+                            src="https://placehold.co/40x16/000000/FFFFFF?text=Great+Place"
+                            alt="Great Place To Work Logo Placeholder"
+                            className="h-4 w-auto"
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/40x16/000000/FFFFFF?text=Great+Place" }}
+                        />
+                    </div>
+                    {/* Placeholder for Certified Badge */}
+                    <div className="bg-white text-xs text-red-700 font-bold p-1 mt-1 rounded-md border-b-4 border-red-700 shadow-lg">
+                        Certificado
+                    </div>
+                </div>
+
+
+                <div className="text-white ml-8"> {/* Adjusted margin for visual spacing */}
+                    <h1 className="text-2xl font-extrabold tracking-tight">ONS</h1>
+                    <p className="text-xs -mt-1 font-light">Operador Nacional do Sistema Elétrico</p>
+                </div>
+            </div>
+
+            {/* Navigation Menu and Registration Button */}
+            <nav className="hidden lg:flex items-center space-x-6"> 
+                <ul className="flex space-x-6 text-sm font-semibold text-white">
+                    {mainNavItems.map(item => (
+                        <li key={item}>
+                            <a href="#" className="uppercase tracking-wide hover:text-yellow-300 transition duration-150 whitespace-nowrap">
+                                {item}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+                {/* New Registration Button */}
+                <button
+                    onClick={onOpenRegistration}
+                    className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-yellow-300 transition duration-150 flex items-center whitespace-nowrap shadow-md"
+                >
+                    <PlusCircle size={36} className="mr-1" />
+                    Cadastro Elite
+                </button>
+            </nav>
+            <button 
+                onClick={onOpenRegistration} // Mobile friendly button for registration
+                className="lg:hidden text-white p-2 border border-white rounded-md flex items-center space-x-1"
+            >
+                <PlusCircle size={16} />
+                <span className="text-sm font-bold">Elite</span>
+            </button>
+        </div>
+    </header>
+);
+
+// 3. Sub-Navigation Bar (unchanged)
+const SubNavigationView = ({ subNavItems, activeSubTab, handleSubTabClick }) => (
+    <div style={{ backgroundColor: darkGreen }} className="w-full text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:justify-between md:items-center">
+            {/* Main Title and Share Icon */}
+            <div className="flex items-center space-x-4 pb-2 md:pb-0">
+                <h2 className="text-lg md:text-xl font-light">
+                    SOBRE O ONS
+                    <span className="font-bold ml-2">PROCEDIMENTOS DE REDE</span>
+                </h2>
+                {/* Simulated Share Icon */}
+                <span className="p-1 rounded-full border border-white cursor-pointer hover:bg-white hover:text-gray-900 transition duration-150">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                </span>
+            </div>
+
+            {/* Sub-Tabs (Scrollable on small screens) */}
+            <nav className="overflow-x-auto whitespace-nowrap py-1 md:py-0">
+                {subNavItems.map(item => (
+                    <button
+                        key={item}
+                        onClick={() => handleSubTabClick(item)}
+                        className={`text-sm font-semibold px-4 py-2 mx-1 transition duration-150 rounded-t-lg
+                            ${activeSubTab === item
+                                ? 'border-b-4 border-yellow-400 text-yellow-400'
+                                : 'hover:border-b-4 hover:border-white/50 border-transparent text-gray-200 hover:text-white'
+                            }`}
+                    >
+                        {item}
+                    </button>
+                ))}
+            </nav>
+        </div>
+    </div>
+);
+
+// 4. Content Area (unchanged)
+const ContentView = ({ content }) => (
+    <main className="max-w-7xl mx-auto p-4 md:p-8 bg-white min-h-[400px]">
+        <div className="p-6 border border-gray-200 rounded-xl shadow-inner bg-gray-50">
+            <h3 className="text-xl font-semibold text-gray-700 mb-4">Seção Principal de Conteúdo</h3>
+            <p className="text-gray-600 leading-relaxed">
+                {content}
+            </p>
+            <p className="mt-4 text-sm text-gray-500">
+                Esta é uma simulação da área de conteúdo dinâmico, que mudaria dependendo da aba selecionada (MPO, SISTEMAS, etc.).
+                Para o propósito desta replicação, o conteúdo é estático e reage apenas ao clique da aba.
+            </p>
+        </div>
+    </main>
+);
+
+// 5. Footer (unchanged)
+const FooterView = ({ footerLinks, socialIcons }) => (
+    <footer className="w-full bg-gray-100 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-6 text-gray-600 text-sm">
+            {/* Copyright and Socials */}
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <p>&copy; Copyright 2025 ONS</p>
+                <div className="flex space-x-4">
+                    {socialIcons.map((Icon, index) => (
+                        <a key={index} href="#" aria-label={`Social Media ${index}`}>
+                            <Icon size={20} className="hover:text-black transition duration-150" />
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            {/* Policy Links */}
+            <div className="mt-4 pt-4 border-t border-gray-200 text-xs flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-6">
+                {footerLinks.map(link => (
+                    <a key={link} href="#" className="hover:underline transition duration-150 whitespace-nowrap py-1">
+                        {link}
+                    </a>
+                ))}
+            </div>
+        </div>
+    </footer>
+);
+
+
+// --- MAIN APPLICATION / APP (V + C) ---
+const App = () => {
+    // Controller Hook
+    const { 
+        activeSubTab, 
+        handleSubTabClick, 
+        content, 
+        navData, 
+        isRegistrationOpen, 
+        openRegistration, 
+        closeRegistration, 
+        handleSubmitRegistration, 
+        modalState, 
+        closeModal 
+    } = useNavigationController();
+
+    return (
+        <div className="min-h-screen flex flex-col font-sans bg-gray-50">
+            {/* Modal is always rendered on top for global feedback */}
+            <ModalComponent
+                visible={modalState.visible}
+                type={modalState.type}
+                message={modalState.message}
+                onClose={closeModal}
+            />
+
+            <TopBarView
+                topBarLinks={navData.topBarLinks}
+                socialIcons={navData.socialIcons}
+            />
+            {/* Pass new handler to MainHeaderView */}
+            <MainHeaderView
+                mainNavItems={navData.mainNavItems}
+                onOpenRegistration={openRegistration}
+            />
+            
+            {/* Conditional Rendering / Simple Routing */}
+            {isRegistrationOpen ? (
+                // Show Registration Form
+                <NewEmployeeFormView
+                    onSubmit={handleSubmitRegistration}
+                    onCancel={closeRegistration}
+                />
+            ) : (
+                // Show Main Website Content
+                <>
+                    {/* SubNav and Content are only visible on the main site */}
+                    <SubNavigationView
+                        subNavItems={navData.subNavItems}
+                        activeSubTab={activeSubTab}
+                        handleSubTabClick={handleSubTabClick}
+                    />
+                    <ContentView
+                        content={content}
+                    />
+                </>
+            )}
+
+            <div className="mt-auto">
+                <FooterView
+                    footerLinks={navData.footerLinks}
+                    socialIcons={navData.socialIcons}
+                />
+            </div>
+        </div>
+    );
+};
+
+export default App;
+

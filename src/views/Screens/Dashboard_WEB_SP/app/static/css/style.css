@@ -1,0 +1,202 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5;
+    overflow-x: hidden;
+}
+
+/* --- Layout do Sidebar --- */
+.wrapper { display: flex; width: 100%; min-height: 100vh; align-items: stretch; }
+#sidebar {
+    min-width: 280px; max-width: 280px; background: #212529;
+    color: #fff; transition: all 0.3s;
+}
+#sidebar.active { margin-left: -280px; }
+#sidebar .sidebar-header {
+    padding: 20px; background: #343a40; text-align: center;
+    font-size: 1.5rem; font-weight: 700;
+}
+#sidebar .sidebar-controls { padding: 20px; }
+#sidebar .control-group { margin-bottom: 1.5rem; }
+#sidebar label { color: #adb5bd; font-weight: 500; margin-bottom: 0.5rem; }
+#sidebar .form-select, #sidebar .form-control {
+    background-color: #343a40; color: #fff; border-color: #495057;
+}
+#sidebar .form-select:focus, #sidebar .form-control:focus {
+    background-color: #343a40; color: #fff; border-color: #0d6efd; box-shadow: none;
+}
+#sidebar .form-select option { background: #343a40; color: #fff; }
+
+/* --- Layout do Conteúdo --- */
+#content { width: 100%; padding: 20px; min-height: 100vh; transition: all 0.3s; }
+#sidebar-toggle { font-size: 1.5rem; }
+.navbar-nav .nav-link { font-weight: 500; cursor: pointer; }
+.navbar-nav .nav-link.active { color: #0d6efd; font-weight: 700; }
+.tool-description { font-size: 0.9rem; color: #6c757d; margin-bottom: 1.5rem; } /* Estilo para descrições */
+
+@media (max-width: 768px) {
+    #sidebar { margin-left: -280px; }
+    #sidebar.active { margin-left: 0; }
+    .navbar-title { display: none; }
+}
+
+/* --- Estilos dos Componentes --- */
+.card {
+    border: none; border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.file-upload-wrapper button { width: 100%; }
+.file-upload-wrapper { position: relative; overflow: hidden; display: block; }
+.file-upload-wrapper input[type=file] {
+    font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;
+}
+.table-responsive { max-height: 550px; }
+#file-name {
+    display: block; margin-top: 10px; color: #adb5bd; font-size: 0.875rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.loader-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.8); z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+}
+.loader {
+    border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%;
+    width: 50px; height: 50px; animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.calendar-day.has-activity { background-color: #cfe2ff; cursor: pointer; font-weight: bold; }
+.calendar-day.selected-day { background-color: #0d6efd; color: white; border-radius: 0.25rem; }
+#modal-activity-details .badge { font-size: 0.9em; }
+
+.table-resizable { border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; }
+.table-resizable > thead > tr > th { position: relative; }
+.resizer { position: absolute; top: 0; right: 0; width: 5px; cursor: col-resize; user-select: none; height: 100%; }
+
+/* --- Estilos Kanban e Matrizes --- */
+.kanban-column, .analysis-column { 
+    background-color: #f8f9fa; border-radius: 0.5rem; padding: 10px;
+    height: 100%; min-height: 400px; /* Aumenta altura mínima */ transition: background-color 0.2s;
+}
+.kanban-column.drag-over, .analysis-column.drag-over { background-color: #d1e7dd; } /* Feedback visual ao arrastar sobre */
+
+/* Cartão Kanban (Excel) e Item Manual (Matrizes) */
+.kanban-card, .manual-item { 
+    cursor: grab; background: #fff; border-left: 5px solid #6c757d;
+    padding: 10px; margin-bottom: 8px; border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.kanban-card:active, .manual-item:active { cursor: grabbing; }
+.kanban-card.dragging, .manual-item.dragging { opacity: 0.5; } /* Efeito ao arrastar */
+
+.analysis-column { min-height: 400px; }
+.column-title { 
+    font-weight: bold; border-bottom: 2px solid; padding-bottom: 5px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; 
+}
+/* Estilos específicos Prós/Contras */
+.pros-column { background-color: #d1e7dd; } /* Verde claro */
+.contras-column { background-color: #f8d7da; } /* Vermelho claro */
+.pros-title { color: #0f5132; border-color: #0f5132; } /* Verde escuro */
+.contras-title { color: #842029; border-color: #842029; } /* Vermelho escuro */
+
+/* Item manual (usado em Eisenhower e Prós/Contras) */
+.manual-item { 
+     display: flex; justify-content: space-between; align-items: center;
+}
+.manual-item p { margin: 0; flex-grow: 1; margin-right: 10px; }
+.delete-item { cursor: pointer; color: #dc3545; } 
+.add-matrix-item { cursor: pointer; color: #0d6efd; }
+
+/* --- NOVOS ESTILOS: Planejador Semanal --- */
+.planner-container { 
+    display: flex; 
+    gap: 1.5rem; 
+    flex-wrap: wrap; /* Permite quebra de linha em telas pequenas */
+}
+.planner-tasks-list {
+    width: 100%; /* Ocupa 100% em mobile */
+    min-width: 250px; 
+    background: #f8f9fa; 
+    border-radius: 0.5rem; 
+    padding: 10px; 
+    height: 600px; /* Altura fixa */
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+}
+.planner-week-view { 
+    flex-grow: 1; 
+    display: grid; 
+    /* Cria 7 colunas flexíveis */
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 10px; 
+    width: 100%;
+}
+.planner-day-column { 
+    background: #ffffff; 
+    border-radius: 0.5rem; 
+    padding: 10px; 
+    height: 600px; /* Altura fixa */
+    overflow-y: auto; 
+    border: 1px solid #dee2e6;
+    min-width: 120px; /* Largura mínima para cada dia */
+}
+/* Cor de fundo ao arrastar sobre */
+.planner-day-column.drag-over, .planner-tasks-list.drag-over { 
+    background-color: #d1e7dd; 
+} 
+.planner-item { /* Estilo para o item arrastável no planejador */
+    cursor: grab; 
+    background: #fff; 
+    padding: 8px 12px; 
+    margin-bottom: 8px; 
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+    border: 1px solid #eee;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+.planner-item p { 
+    margin: 0; 
+    flex-grow: 1; 
+    margin-right: 10px; 
+    font-size: 0.85rem; 
+    word-break: break-word; /* Garante quebra de linha em palavras longas */
+}
+.planner-item:active { cursor: grabbing; }
+.planner-item.dragging { opacity: 0.5; }
+
+/* Título da coluna do dia */
+.day-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    text-align: center;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+/* Título da lista de tarefas não alocadas */
+.tasks-list-title {
+    font-size: 1rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+/* Media query para telas maiores (desktop) */
+@media (min-width: 992px) { /* lg breakpoint */
+    .planner-tasks-list { 
+        width: 30%; /* 30% em telas grandes */
+        flex-shrink: 0; /* Impede que encolha */
+    }
+    .planner-container {
+        flex-wrap: nowrap; /* Impede quebra de linha em telas grandes */
+    }
+}
+/* --- FIM DOS NOVOS ESTILOS --- */
+
